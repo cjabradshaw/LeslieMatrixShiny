@@ -1,5 +1,10 @@
 # LeslieMatrixShiny
 
+Prof Corey J. A. Bradshaw <br>
+<a href="http://globalecologyflinders.com" target="_blank">Global Ecology</a>, <a href="http://flinders.edu.au" target="_blank">Flinders University</a>, Adelaide, Australia <br>
+November 2020 <br>
+<a href=mailto:corey.bradshaw@flinders.edu.au>e-mail</a> <br>
+
 ## Preamble
 This app projects a user-defined Leslie (age-classified) matrix to examine population changes through time. This fully customisable app includes a density-feedback function on survival relative to desired initial population size and carrying capacity, stochastic projections with user-defined variance for survival, a generationally scaled catastrophe function, a single 'pulse' disturbance function, and a 'press' disturbance function with a user-defined time application.
 
