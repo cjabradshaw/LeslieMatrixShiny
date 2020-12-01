@@ -7,6 +7,7 @@ rm(list = ls())
 
 # load libraries
 library(shiny)
+library(shinybusy)
 library(ggplot2)
 
 ## call functions
@@ -150,6 +151,7 @@ ui <- fluidPage(
                                 wellPanel(style = "background: #d7f9da",
                                  actionButton("makeMatrix", label="generate/update matrix",icon=shiny::icon("fas fa-calculator")),
                                  tags$h3(tags$p(style="font-family:Avenir", "Leslie matrix:")),
+                                 add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                  tableOutput("matrix")
                                 ), # end wellPanel
                        ) # close mainPanel
@@ -179,6 +181,7 @@ ui <- fluidPage(
                            wellPanel(style = "background: #d7f9da",
                                      actionButton("DFcalc", label="calculate density-feedback function",icon=shiny::icon("fas fa-exchange-alt")),
                                      tags$hr(),
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("DDrelPlot"),
                                      tags$h3(tags$p(style="font-family:Avenir", "updated",tags$em("r"),"at",tags$em("K"))),
                                      textOutput("RmaxK"),
@@ -216,6 +219,7 @@ ui <- fluidPage(
                          
                          mainPanel(
                            wellPanel(style = "background: #d7f9da",
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("detProjPlot")
                            ), # end wellPanel
                          ) # close mainPanel
@@ -248,6 +252,8 @@ ui <- fluidPage(
                          mainPanel(
                            wellPanel(style = "background: #d7f9da",
                                      tags$h3(tags$p(style="font-family:Avenir", "a. population size")),
+                                     #add_busy_gif(src = "expand.gif", timeout=500, position='full-page', height = 150, width = 150), # add busy gif
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectStochPlot"),
                                      tags$hr(),
                                      textOutput("PrExt"),
@@ -299,6 +305,7 @@ ui <- fluidPage(
                          mainPanel(
                            wellPanel(style = "background: #d7f9da",
                                      tags$h3(tags$p(style="font-family:Avenir", "population size")),
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectPulsePlot"),
                                      tags$hr(),
                                      textOutput("PrExtPulse"),
@@ -347,6 +354,7 @@ ui <- fluidPage(
                          mainPanel(
                            wellPanel(style = "background: #d7f9da",
                                      tags$h3(tags$p(style="font-family:Avenir", "population size")),
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectPressPlot"),
                                      tags$hr(),
                                      textOutput("PrExtPress"),
