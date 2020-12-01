@@ -74,7 +74,7 @@ ui <- fluidPage(
                            over which the user wishes to invoke the press."))
     ),
         tags$p(style="font-family:Avenir", "This", tags$i(class="fab fa-github"), "Github ",
-           tags$a(href = "https://github.com/cjabradshaw/xxxx", "repository"),
+           tags$a(href = "https://github.com/cjabradshaw/LeslieMatrixShiny", "repository"),
            "provides all the 'under-the-bonnet'",tags$i(class="fab fa-r-project"),"code for the app."),
   ),
   
@@ -369,7 +369,7 @@ ui <- fluidPage(
                                         modeller to use this app, but a reasonable grounding in the basic components is a good idea all the same."),
                                  tags$p(style="font-family:Avenir","My secondary intention is that once you are able to customise the app to your purposes, you might feel more
                                         capable of designing your own code from scratch (relying heavily on the functions I have provided on",
-                                        tags$i(class="fab fa-github"), "Github). For the more adventurous, I can recommend the following sources to find
+                                        tags$i(class="fab fa-github"), tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny","Github"),"). For the more adventurous, I can recommend the following sources to find
                                         out more:"),
                                  tags$ul(tags$li(tags$p(style="font-family:Avenir", tags$i(class="fas fa-book"),"Hal Caswell's 2006 (second edition) book", tags$a(href="https://global.oup.com/academic/product/matrix-population-models-9780878931217?cc=au&lang=en&#", tags$em("Matrix Population Models:
                                                  Construction, Analysis, and Interpretation")), "(view", tags$a(href="https://www.whoi.edu/cms/files/mpm2e_tableofcontents_116984.pdf",
@@ -600,7 +600,7 @@ ui <- fluidPage(
                                          tags$li(tags$p(style="font-family:Avenir","If you set the interval, between what percentages of the window should the press
                                          disturbance occur?")),
                                          
-                                         tags$a(href="https://github.com/cjabradshaw/EpsilonIndexShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
+                                         tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
                                          
                                          ), # end numbered ol
                                          tags$p(style="font-family:Avenir","Next, click the 'project/update' button to view the graph projecting population size",
