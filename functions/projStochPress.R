@@ -94,10 +94,11 @@ projStochPress <- function (x, initN, projYrs, projGens, iter, S_SD, F_SD, Qthre
             
             if (missing(PercOff) & ((i) >= IntOfft[1] & (i) <= IntOfft[2])) {
               nmat[,i+1] <- nmat[,i+1] - (StableStageDist(popmat)*FixOff/2)
-              nmat[,i+1] <- ifelse(nmat[,i+1] < 0, 0, nmat[,i+1])
+              nmat[,i+1] <- ifelse(nmat[,i+1] < 1, 0, nmat[,i+1])
             }
             if (missing(FixOff) & ((i) >= IntOfft[1] & (i) <= IntOfft[2])) {
               nmat[,i+1] <- nmat[,i+1] - (nmat[,i+1]*(PercOff/100))
+              nmat[,i+1] <- ifelse(nmat[,i+1] < 1, 0, nmat[,i+1])
             }
             
           } # end i loop
@@ -191,10 +192,11 @@ projStochPress <- function (x, initN, projYrs, projGens, iter, S_SD, F_SD, Qthre
           
           if (missing(PercOff) & ((i) >= IntOfft[1] & (i) <= IntOfft[2])) {
             nmat[,i+1] <- nmat[,i+1] - (StableStageDist(popmat)*FixOff/2)
-            nmat[,i+1] <- ifelse(nmat[,i+1] < 0, 0, nmat[,i+1])
+            nmat[,i+1] <- ifelse(nmat[,i+1] < 1, 0, nmat[,i+1])
           }
           if (missing(FixOff) & ((i) >= IntOfft[1] & (i) <= IntOfft[2])) {
             nmat[,i+1] <- nmat[,i+1] - (nmat[,i+1]*(PercOff/100))
+            nmat[,i+1] <- ifelse(nmat[,i+1] < 1, 0, nmat[,i+1])
           }
           
         } # end i loop
@@ -305,6 +307,7 @@ projStochPress <- function (x, initN, projYrs, projGens, iter, S_SD, F_SD, Qthre
           }
           if (missing(FixOff) & ((i) >= IntOfft[1] & (i) <= IntOfft[2])) {
             nmat[,i+1] <- nmat[,i+1] - (nmat[,i+1]*(PercOff/100))
+            nmat[,i+1] <- ifelse(nmat[,i+1] < 1, 0, nmat[,i+1])
           }
           
         } # end i loop
