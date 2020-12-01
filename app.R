@@ -1945,6 +1945,8 @@ server <- function(input, output, session) {
             ggplot(NprojStochPressPrecSet$Nrange, aes(x=yrvec, y=Nmd)) +
               geom_ribbon(aes(ymin = Nlo, ymax = Nup), fill = "grey70", alpha=0.4) +
               geom_path(linetype=2) +
+              geom_vline(xintercept=c(round(as.numeric(input$yrsFutureProj)*as.numeric(input$setSubsetPress[1]/100), 0), round(as.numeric(input$yrsFutureProj)*as.numeric(input$setSubsetPress[2]/100), 0)),
+                         linetype=3, color="black", size=0.5) +
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
@@ -2032,6 +2034,8 @@ server <- function(input, output, session) {
             ggplot(NprojStochPressFixSet$Nrange, aes(x=yrvec, y=Nmd)) +
               geom_ribbon(aes(ymin = Nlo, ymax = Nup), fill = "grey70", alpha=0.4) +
               geom_path(linetype=2) +
+              geom_vline(xintercept=c(round(as.numeric(input$yrsFutureProj)*as.numeric(input$setSubsetPress[1]/100), 0), round(as.numeric(input$yrsFutureProj)*as.numeric(input$setSubsetPress[2]/100), 0)),
+                         linetype=3, color="black", size=0.5) +
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
@@ -2122,6 +2126,8 @@ server <- function(input, output, session) {
             ggplot(NprojStochPressPrecSet$Nrange, aes(x=yrvec, y=Nmd)) +
               geom_ribbon(aes(ymin = Nlo, ymax = Nup), fill = "grey70", alpha=0.4) +
               geom_path(linetype=2) +
+              geom_vline(xintercept=c(round(as.numeric(input$gensFutureProj)*G*as.numeric(input$setSubsetPress[1]/100), 0), round(as.numeric(input$gensFutureProj)*G*as.numeric(input$setSubsetPress[2]/100), 0)),
+                         linetype=3, color="black", size=0.5) +
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
@@ -2209,6 +2215,8 @@ server <- function(input, output, session) {
             ggplot(NprojStochPressFixSet$Nrange, aes(x=yrvec, y=Nmd)) +
               geom_ribbon(aes(ymin = Nlo, ymax = Nup), fill = "grey70", alpha=0.4) +
               geom_path(linetype=2) +
+              geom_vline(xintercept=c(round(as.numeric(input$gensFutureProj)*G*as.numeric(input$setSubsetPress[1]/100), 0), round(as.numeric(input$gensFutureProj)*G*as.numeric(input$setSubsetPress[2]/100), 0)),
+                         linetype=3, color="black", size=0.5) +
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
