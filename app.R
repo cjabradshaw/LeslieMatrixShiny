@@ -47,30 +47,30 @@ ui <- fluidPage(
            customisable app includes a density-feedback function on survival relative to desired initial population size and carrying capacity,
            stochastic projections with user-defined variance for survival, a generationally scaled catastrophe function, a single 'pulse' disturbance
            function, and a 'press' disturbance function with a user-defined time application."),
-    tags$p(style="font-family:Avenir", "A detailed instructions tab (tab H) is included for guidance, but a brief sequence description is included below. User-
+    tags$p(style="font-family:Avenir", "A detailed instructions",tags$i(class="fas fa-directions"), "tab (tab H) is included for guidance, but a brief sequence description is included below. User-
            defined settings in each tab are carried over to subsequent tabs."),
-    tags$ol(type="A", tags$li(tags$p(style="font-family:Avenir",tags$strong("SET-UP"),": set matrix dimensions (longevity), age",tags$em("x"),"-specific survival
+    tags$ol(type="A", tags$li(tags$p(style="font-family:Avenir",tags$strong("SET-UP"),tags$i(class="fas fa-pencil-ruler"),": set matrix dimensions (longevity), age",tags$em("x"),"-specific survival
                            (",tags$em("s", tags$sub("x")),") and fertility (",tags$em("f",tags$sub("x")), ") probabilities,
                            offspring sex ratio, % variance around survival/fertility probabilties, and whether lifespan is abrupt or diffuse.")),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("MATRIX PROPERTIES"),": shows Leslie matrix according to settings in tab A,
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("MATRIX PROPERTIES"),tags$i(class="fas fa-table"),": shows Leslie matrix according to settings in tab A,
                            as well as the dominant eigen value",tags$em("λ"), "instaneous rate of population change", tags$em("r"),"generation length",
                            tags$em("G"), ", and reproduction number R0 (number of ♀ offspring/adult ♀).")),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("DENSITY FEEDBACK"),": set initial population size and carrying capacity", tags$em("K"),
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("DENSITY FEEDBACK"),tags$i(class="fas fa-exchange-alt"),": set initial population size and carrying capacity", tags$em("K"),
                            ", as well as the three coefficients (", tags$em("a"),",",tags$em("b"),",",tags$em("c"),") from a logistic power function to define the relationship between a survival modifier",
                            tags$em("S"),tags$sub("mod"),"and population size.")),
             tags$img(height = 100, src = "Amatrix.png", style="float:right"),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("PROJECT"),": deterministic projection of the population, setting the number of years
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("PROJECT"),tags$i(class="fas fa-chart-line"),": deterministic projection of the population, setting the number of years
                            (or generations) to project the population, initial population size, and whether to invoke the density-feedback function
                            set in the previous tab.")),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("STOCHASTIC"),": stochastic projection of the population based on previous settings
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("STOCHASTIC"),tags$i(class="fas fa-bolt"),": stochastic projection of the population based on previous settings
                            (including the % variances set in the first tab); the user can set the number of iterations to repeat the stochastic 
                            resampling, the quasi-extinction threshold (population size below which it is considered functionally extinct), and whether to
                            invoke a generationally scaled catatastrophic mortality probability (the magnitude and variance of which can be set by the user).")),
             tags$img(height = 100, src = "GEL Logo Kaurna transparent.png", style="float:right"),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("SINGLE PULSE"),": a single 'pulse' disturbance, where the user can set the disturbance
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("SINGLE PULSE"),tags$i(class="fas fa-level-down-alt"),": a single 'pulse' disturbance, where the user can set the disturbance
                            to be either a proportion of the total population that is removed, or a fixed number of individuals removed, at the time (year)
                            the user wishes to invoke the pulse.")),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("PRESS"),": a press disturbance, where the user can set the disturbance
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("PRESS"),tags$i(class="fas fa-compress-arrows-alt"),": a press disturbance, where the user can set the disturbance
                            to be either a proportion of the total population that is removed, or a fixed number of individuals removed, during the interval
                            over which the user wishes to invoke the press."))
     ),
@@ -80,7 +80,7 @@ ui <- fluidPage(
   ),
   
   tabsetPanel(id="tabs",
-              tabPanel(value="tab1", title=tags$strong("A. SET-UP"),
+              tabPanel(value="tab1", title=tags$strong("A. SET-UP", tags$i(class="fas fa-pencil-ruler")),
                 wellPanel(style = "background: #d7f9da",                  
                     tags$h3(style="font-family:Avenir", tags$i(class="fas fa-pencil-ruler"), "set base parameters for matrix set-up"),
                     fluidRow(
@@ -133,7 +133,7 @@ ui <- fluidPage(
               ), # end tab 1
               
               
-              tabPanel(value="tab2", title=tags$strong("B. MATRIX PROPERTIES"),
+              tabPanel(value="tab2", title=tags$strong("B. MATRIX PROPERTIES",tags$i(class="fas fa-table")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                                       
@@ -159,7 +159,7 @@ ui <- fluidPage(
                        
               ), # end tab2
               
-              tabPanel(value="tab3", title=tags$strong("C. DENSITY FEEDBACK"),
+              tabPanel(value="tab3", title=tags$strong("C. DENSITY FEEDBACK",tags$i(class="fas fa-exchange-alt")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                            tags$h3(tags$p(style="font-family:Avenir",tags$i(class="fas fa-exchange-alt"), "density feedback")),
@@ -193,7 +193,7 @@ ui <- fluidPage(
               ), # end tab3
               
               
-              tabPanel(value="tab4", title=tags$strong("D. PROJECT"),
+              tabPanel(value="tab4", title=tags$strong("D. PROJECT",tags$i(class="fas fa-chart-line")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                            tags$h3(tags$p(style="font-family:Avenir", tags$i(class="fas fa-chart-line"),"projection parameters")),
@@ -227,7 +227,7 @@ ui <- fluidPage(
                        
               ), # end tab4
 
-              tabPanel(value="tab5", title=tags$strong("E. STOCHASTIC"),
+              tabPanel(value="tab5", title=tags$strong("E. STOCHASTIC",tags$i(class="fas fa-bolt")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                            tags$h3(tags$p(style="font-family:Avenir",tags$i(class="fas fa-bolt"), "stochastic projection")),
@@ -271,7 +271,7 @@ ui <- fluidPage(
                        
               ), # end tab5
               
-              tabPanel(value="tab6", title=tags$strong("F. SINGLE PULSE"),
+              tabPanel(value="tab6", title=tags$strong("F. SINGLE PULSE",tags$i(class="fas fa-level-down-alt")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                            tags$h3(tags$p(style="font-family:Avenir", tags$i(class="fas fa-level-down-alt"),"pulse disturbance")),
@@ -318,7 +318,7 @@ ui <- fluidPage(
                        
               ), # end tab6
               
-              tabPanel(value="tab7", title=tags$strong("G. PRESS"),
+              tabPanel(value="tab7", title=tags$strong("G. PRESS",tags$i(class="fas fa-compress-arrows-alt")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
                                       tags$h3(tags$p(style="font-family:Avenir",tags$i(class="fas fa-compress-arrows-alt"), "press disturbance")),
@@ -367,9 +367,9 @@ ui <- fluidPage(
                        
               ), # end tab7
               
-              tabPanel(value="tab8", title=tags$strong("H. INSTRUCTIONS"), style = "background: #d7f9da",
+              tabPanel(value="tab8", title=tags$strong("H. INSTRUCTIONS",tags$i(class="fas fa-directions")), style = "background: #d7f9da",
                        wellPanel(style = "background: #d7f9da",
-                                 tags$h3(style="font-family:Avenir","Detailed instructions and notes"),
+                                 tags$h3(style="font-family:Avenir",tags$i(class="fas fa-directions"),"Detailed instructions and notes"),
                                  tags$a(href="https://flinders.edu.au/", tags$img(height = 100, src = "F_V_CMYK.png", style="float:right",title="Flinders University")),
                                  tags$h4(style="font-family:Avenir",tags$em("Preamble")),
                                  tags$p(style="font-family:Avenir", "I designed this app for ecologists who might be daunted by the prospect of coding
