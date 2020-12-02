@@ -47,13 +47,13 @@ ui <- fluidPage(
            customisable app includes a density-feedback function on survival relative to desired initial population size and carrying capacity,
            stochastic projections with user-defined variance for survival, a generationally scaled catastrophe function, a single 'pulse' disturbance
            function, and a 'press' disturbance function with a user-defined time application."),
-    tags$p(style="font-family:Avenir", "A detailed instructions",tags$i(class="fas fa-directions"), "tab (tab H) is included for guidance, but a brief sequence description is included below. User-
-           defined settings in each tab are carried over to subsequent tabs."),
+    tags$p(style="font-family:Avenir", "A detailed instructions",tags$i(class="fas fa-directions"), "tab (tab H) is included for guidance, but a brief sequence description is included below.
+           User-defined settings in each tab are carried over to subsequent tabs."),
     tags$ol(type="A", tags$li(tags$p(style="font-family:Avenir",tags$strong("SET-UP"),tags$i(class="fas fa-pencil-ruler"),": set matrix dimensions (longevity), age",tags$em("x"),"-specific survival
                            (",tags$em("s", tags$sub("x")),") and fertility (",tags$em("f",tags$sub("x")), ") probabilities,
-                           offspring sex ratio, % variance around survival/fertility probabilties, and whether lifespan is abrupt or diffuse.")),
+                           offspring sex ratio, % variance around survival/fertility probabilities, and whether lifespan is abrupt or diffuse.")),
             tags$li(tags$p(style="font-family:Avenir",tags$strong("MATRIX PROPERTIES"),tags$i(class="fas fa-table"),": shows Leslie matrix according to settings in tab A,
-                           as well as the dominant eigen value",tags$em("λ"), "instaneous rate of population change", tags$em("r"),"generation length",
+                           as well as the dominant eigen value",tags$em("λ"), "instantaneous rate of population change", tags$em("r"),"generation length",
                            tags$em("G"), ", and reproduction number R0 (number of ♀ offspring/adult ♀).")),
             tags$li(tags$p(style="font-family:Avenir",tags$strong("DENSITY FEEDBACK"),tags$i(class="fas fa-exchange-alt"),": set initial population size and carrying capacity", tags$em("K"),
                            ", as well as the three coefficients (", tags$em("a"),",",tags$em("b"),",",tags$em("c"),") from a logistic power function to define the relationship between a survival modifier",
@@ -433,7 +433,7 @@ ui <- fluidPage(
                                          by dasyurid marsupials (including devils, quolls, and antechinus) at the end of life, or in truly semelparous
                                          species. In many other species, some rare individuals can exceed life expectancy by chance alone. The general
                                          rule of thumb is that if too many individuals are showing up in the 'final' age class, your longevity estimate
-                                         might be too low, or your final-age survival probabability might be too high (you can view the stable age structure in tab B).")),
+                                         might be too low, or your final-age survival probability might be too high (you can view the stable age structure in tab B).")),
                                          tags$li(tags$p(style="font-family:Avenir","Once you have set the six previous parameters, click the 'set",tags$em("S"),"/",
                                          tags$em("F"), "vectors' button to set up the survival and fertility vectors, and their respective standard deviations (%SD; 
                                          more on these below in items A8 and A10). The number of slider bars that appear in items A7-10 is set as maximum age (item A1)
@@ -568,7 +568,7 @@ ui <- fluidPage(
                                          tags$p(style="font-family:Avenir", "A 'pulse' disturbance is an acute perturbation that happens abruptly. I implemented this
                                          function to test the effect of one-off disturbance events like a harvest or known catastrophe (in addition or independent of the 
                                          'normal' probability of a generic catastrophes implemented in the previous tab). You have the choice to set a specific timing
-                                         for the pulse disturbance, or letting it happen at any time randomly during the projection window (and differently in every
+                                         for the pulse disturbance, or let it happen at any time randomly during the projection window (and differently in every
                                          stochastic iteration). You can also choose to set the perturbation as a percentage of the current population size, or as a
                                          fixed number of individuals (spread across the entire age range according to the stable age distribution from panel B):"),
                                          tags$ol(tags$li(tags$p(style="font-family:Avenir","First set the disturbance pulse as either a percentage of the current population,
@@ -597,7 +597,7 @@ ui <- fluidPage(
                                          tags$p(style="font-family:Avenir", "A 'press' disturbance is a perturbation that happens over a longer time frame
                                          than a pulse disturbance. I implemented this function to test the effect of a sustained disturbance event like an annual
                                          harvest (in addition or independent of the 'normal' probability of a generic catastrophes implemented in tab E). You have
-                                         the choice to set a specific interval for the press disturbance, or letting it happen throughout the entire projection
+                                         the choice to set a specific interval for the press disturbance, or let it happen throughout the entire projection
                                          window. You can also choose to set the perturbation as a percentage of the current population size, or as a
                                          fixed number of individuals (spread across the entire age range according to the stable age distribution from panel B):"),
                                          tags$ol(tags$li(tags$p(style="font-family:Avenir","First set the disturbance press as either a percentage of the current population,
