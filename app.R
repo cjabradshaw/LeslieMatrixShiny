@@ -9,6 +9,7 @@ rm(list = ls())
 library(shiny)
 library(shinybusy)
 library(ggplot2)
+library(tsoutliers)
 
 ## call functions
 source(file.path("./functions/", "createLmatrix.R"), local=T)
@@ -21,6 +22,7 @@ source(file.path("./functions/", "projLmatrix.R"), local=T)
 source(file.path("./functions/", "projStochMatrix.R"), local=T)
 source(file.path("./functions/", "projStochPulse.R"), local=T)
 source(file.path("./functions/", "projStochPress.R"), local=T)
+source(file.path("./functions/", "StochMVP.R"), local=T)
 source(file.path("./functions/", "estBetaParams.R"), local=T)
 source(file.path("./functions/", "setBackgroundColor.R"), local=T)
 
@@ -47,12 +49,12 @@ ui <- fluidPage(
            customisable app includes a density-feedback function on survival relative to desired initial population size and carrying capacity,
            stochastic projections with user-defined variance for survival, a generationally scaled catastrophe function, a single 'pulse' disturbance
            function, and a 'press' disturbance function with a user-defined time application."),
-    tags$p(style="font-family:Avenir", "A detailed instructions",tags$i(class="fas fa-directions"), "tab (tab H) is included for guidance, but a brief sequence description is included below.
+    tags$p(style="font-family:Avenir", "A detailed instructions",tags$i(class="fas fa-directions"), "tab (tab I) is included for guidance, but a brief sequence description is included below.
            User-defined settings in each tab are carried over to subsequent tabs."),
     tags$ol(type="A", tags$li(tags$p(style="font-family:Avenir",tags$strong("SET-UP"),tags$i(class="fas fa-pencil-ruler"),": set matrix dimensions (longevity), age",tags$em("x"),"-specific survival
                            (",tags$em("s", tags$sub("x")),") and fertility (",tags$em("f",tags$sub("x")), ") probabilities,
                            offspring sex ratio, % variance around survival/fertility probabilities, and whether lifespan is abrupt or diffuse.")),
-            tags$li(tags$p(style="font-family:Avenir",tags$strong("MATRIX PROPERTIES"),tags$i(class="fas fa-table"),": shows Leslie matrix according to settings in tab A,
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("MATRIX PROPERTIES"),tags$i(class="fas fa-table"),": shows Leslie matrix according to settings in tab A (or for a previously defined matrix that you can upload),
                            as well as the dominant eigen value",tags$em("λ"), "instantaneous rate of population change", tags$em("r"),"generation length",
                            tags$em("G"), ", and reproduction number R0 (number of ♀ offspring/adult ♀).")),
             tags$li(tags$p(style="font-family:Avenir",tags$strong("DENSITY FEEDBACK"),tags$i(class="fas fa-exchange-alt"),": set initial population size and carrying capacity", tags$em("K"),
@@ -66,13 +68,16 @@ ui <- fluidPage(
                            (including the % variances set in the first tab); the user can set the number of iterations to repeat the stochastic 
                            resampling, the quasi-extinction threshold (population size below which it is considered functionally extinct), and whether to
                            invoke a generationally scaled catatastrophic mortality probability (the magnitude and variance of which can be set by the user).")),
-            tags$img(height = 100, src = "GEL Logo Kaurna transparent.png", style="float:right"),
             tags$li(tags$p(style="font-family:Avenir",tags$strong("SINGLE PULSE"),tags$i(class="fas fa-level-down-alt"),": a single 'pulse' disturbance, where the user can set the disturbance
                            to be either a proportion of the total population that is removed, or a fixed number of individuals removed, at the time (year)
                            the user wishes to invoke the pulse.")),
+            tags$img(height = 100, src = "GEL Logo Kaurna transparent.png", style="float:right"),
             tags$li(tags$p(style="font-family:Avenir",tags$strong("PRESS"),tags$i(class="fas fa-compress-arrows-alt"),": a press disturbance, where the user can set the disturbance
                            to be either a proportion of the total population that is removed, or a fixed number of individuals removed, during the interval
-                           over which the user wishes to invoke the press."))
+                           over which the user wishes to invoke the press.")),
+            tags$li(tags$p(style="font-family:Avenir",tags$strong("MVP"),tags$i(class="fas fa-search-minus"),": calculate the minimum viable population
+                           size according to the parameters set in previous tabs."))
+            
     ),
         tags$p(style="font-family:Avenir", "This", tags$i(class="fab fa-github"), "Github ",
            tags$a(href = "https://github.com/cjabradshaw/LeslieMatrixShiny", "repository"),
@@ -132,7 +137,6 @@ ui <- fluidPage(
                   ) # close mainPanel
               ), # end tab 1
               
-              
               tabPanel(value="tab2", title=tags$strong("B. MATRIX PROPERTIES",tags$i(class="fas fa-table")),
                        sidebarLayout(
                          sidebarPanel(style = "background: #d7f9da",
@@ -149,10 +153,33 @@ ui <- fluidPage(
 
                        mainPanel(
                                 wellPanel(style = "background: #d7f9da",
-                                 actionButton("makeMatrix", label="generate/update matrix",icon=shiny::icon("fas fa-calculator")),
-                                 tags$h3(tags$p(style="font-family:Avenir", "Leslie matrix:")),
+                                         fluidRow(
+                                           column(3,
+                                              actionButton("makeMatrix", label="generate/update matrix",icon=shiny::icon("fas fa-calculator"))),
+                                           column(1,
+                                                  tags$p(style="font-family:Avenir","or")),
+                                           column(3,
+                                                  fileInput("uploadMatrix", label=tags$p(tags$i(class='fas fa-upload'),"upload existing matrix"),
+                                                            multiple=F, buttonLabel="choose file", placeholder="no file selected")),
+                                           column(1,
+                                                  tags$p(style="font-family:Avenir","and")),
+                                           column(3,
+                                                  fileInput("uploadSDs", label=tags$p(tags$i(class='fas fa-upload'),"upload S & F SDs"),
+                                                            multiple=F, buttonLabel="choose file", placeholder="no file selected")),
+                                           ),
+                                         
+                                tags$h3(tags$p(style="font-family:Avenir", "Leslie matrix:")),
                                  add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
-                                 tableOutput("matrix")
+                                 tableOutput("matrix"),
+                                 tags$h3(tags$p(style="font-family:Avenir", "survival & fertility standard deviations (%):")),
+                                 tableOutput("SFSDs"),
+
+                                fluidRow(
+                                  column(3,
+                                         downloadButton('downloadMat', 'download matrix',icon = shiny::icon("download"))),
+                                  column(3,
+                                         downloadButton('downloadSDs', 'download S & F SDs',icon = shiny::icon("download")))),
+                                
                                 ), # end wellPanel
                        ) # close mainPanel
                       ) # end sidebar Layout
@@ -203,7 +230,7 @@ ui <- fluidPage(
                            tags$hr(),
                            conditionalPanel(
                              condition = "input.yrsOrGen == 'years'",
-                             numericInput(inputId = "yrsFutureProj", label=tags$p("2.",tags$i(class='fas fa-clock'), "years to project into the future"), value=(10)),
+                             numericInput(inputId = "yrsFutureProj", label=tags$p("2.",tags$i(class='fas fa-calendar-alt'), "years to project into the future"), value=(10)),
                            ),
                            conditionalPanel(
                              condition = "input.yrsOrGen == 'gens'",
@@ -367,7 +394,50 @@ ui <- fluidPage(
                        
               ), # end tab7
               
-              tabPanel(value="tab8", title=tags$strong("H. INSTRUCTIONS",tags$i(class="fas fa-directions")), style = "background: #d7f9da",
+              tabPanel(value="tab8", title=tags$strong("H. MVP",tags$i(class="fas fa-search-minus")),
+                       sidebarLayout(
+                         sidebarPanel(style = "background: #d7f9da",
+                                      tags$h3(tags$p(style="font-family:Avenir",tags$i(class="fas fa-search-minus"), "minimum viable population size",
+                                                     tags$em("N"),tags$sub("MVP"))),
+                                      radioButtons("genOrYrs", label=tags$p("1.",tags$i(class='fas fa-user-clock'), "project generations or years?"), inline=T,
+                                                   choiceNames = list(icon("fas fa-seedling"), icon("fas fa-calendar-alt")),
+                                                   choiceValues = list("gen","yr")),
+                                      tags$hr(),
+                                      conditionalPanel(
+                                        condition = "input.genOrYrs == 'gen'",
+                                        numericInput(inputId = "genProj", label=tags$p("2.",tags$i(class='fas fa-seedling'), "generations to project into the future"), value=(40)),
+                                      ),
+                                      conditionalPanel(
+                                        condition = "input.genOrYrs == 'yr'",
+                                        numericInput(inputId = "yrProj", label=tags$p("2.",tags$i(class='fas fa-calendar-alt'), "years to project into the future"), value=(100)),
+                                      ),
+                                      sliderInput(inputId = "persistPr", label=tags$p("3.",tags$i(class='fas fa-dice-six'),"select persistence probability"),
+                                                  value=0.99, min=0.800, max=0.999, step=0.001, ticks=F, round=F),
+                                      numericInput(inputId = "iterMVP", label=tags$p("4.",tags$i(class='fas fa-dice'), "MVP iterations"), value=(100)),
+                                      numericInput(inputId = "Nhigh", label=tags$p("5.",tags$i(class='fas fa-angle-double-up'), "upper initial", tags$em("N"), "(♀+♂)"), value=(1000)),
+                                      numericInput(inputId = "Nlo", label=tags$p("6.",tags$i(class='fas fa-angle-double-down'), "lower initial", tags$em("N"), "(♀+♂)"), value=(10)),
+                                      numericInput(inputId = "Nstep", label=tags$p("7.",tags$i(class='fas fa-walking'), "step size", tags$em("N")), value=(10)),
+
+                         ), # end sidebarPanel
+                         
+                         mainPanel(
+                           wellPanel(style = "background: #d7f9da",
+                                     actionButton("calcMVP", label=tags$p("calculate",tags$em("N"),tags$sub("MVP")),icon=shiny::icon("fas fa-search-minus")),
+                                     tags$h3(tags$p(style="font-family:Avenir", "change in persistence probability")),
+                                     add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="top-right", height = 250, width = 250),
+                                     plotOutput("MVPPlot"),
+                                     tags$hr(),
+                                     textOutput("MVPest"),
+                                     textOutput("MVPstepChange"),
+                           ), # end wellPanel
+                           
+                         ) # close mainPanel
+                       ) # end sidebar Layout
+                       
+              ), # end tab8
+              
+              
+              tabPanel(value="tab9", title=tags$strong("I. INSTRUCTIONS",tags$i(class="fas fa-directions")), style = "background: #d7f9da",
                        wellPanel(style = "background: #d7f9da",
                                  tags$h3(style="font-family:Avenir",tags$i(class="fas fa-directions"),"Detailed instructions and notes"),
                                  tags$a(href="https://flinders.edu.au/", tags$img(height = 100, src = "F_V_CMYK.png", style="float:right",title="Flinders University")),
@@ -411,7 +481,11 @@ ui <- fluidPage(
                                         Another important consideration is that while for many parameters the values are set according to both sexes, the 
                                         projections themselves only consider the female element of the population. All relevant parameters are halved automatically
                                         to estimate the total number of females per category assuming a 50:50 adult sex ratio. The graphs produced always
-                                        show only the female component of the population."),
+                                        show only the female component of the population. Finally, you have the capacity to save and subsequently upload
+                                        all parameters set within the matrix and the survival/fertility standard deviations (see tab B)."),
+                                 
+                                 tags$hr(),
+                                 
                                  tags$ol(type = "A", tags$li(tags$p(style="font-family:Avenir", tags$strong("SET-UP"), tags$i(class="fas fa-pencil-ruler")),
                                          tags$ol(tags$li(tags$p(style="font-family:Avenir","You first need to define how long your species will live — this is the
                                          maximum age. The matrix will have the same number of dimensions vertically and horizontally defined as maximum
@@ -447,11 +521,17 @@ ui <- fluidPage(
                                          for use in the stochastic projections in tabs E—G.")),
                                          ) # end numbered ol
                                  ), # end A lis
-                                         
-                                         tags$li(tags$p(style="font-family:Avenir", tags$strong("MATRIX PROPERTIES"), tags$i(class="fas fa-table")),
+                                 
+                                 tags$hr(),
+                                 
+                                 tags$li(tags$p(style="font-family:Avenir", tags$strong("MATRIX PROPERTIES"), tags$i(class="fas fa-table")),
                                          tags$p(style="font-family:Avenir", "Once you are happy with the parameters set in tab A, click on 
-                                         tab B, and then click the 'generate/update matrix' button in the main panel. This action will calculate the matrix
-                                         and display it in the main panel, as well as return some basic properties of the matrix in the side panel:"),
+                                         tab B, and then click the 'generate/update matrix' button in the main panel (alternatively, you can upload a previously
+                                         saved matrix and the associated standard deviations for survival/fertility). This action will calculate the matrix
+                                         and display it in the main panel. If you instead choose to upload a previous matrix file (and survival/fertility standard
+                                         deviations file) — these can be saved using the 'download' buttons at the very bottom of the main panel — you will 
+                                         be able to view the uploaded matrix and standard deviations in the main panel. Either option results in the
+                                         calculation of some basic properties of the matrix displayed in the side panel:"),
                                          tags$ol(type="i",tags$li(tags$p(style="font-family:Avenir","This is the dominant eigen value (",tags$em("λ"),") of
                                          the matrix, which essentially means it is the matrix's capacity to produce either an increasing (",tags$em("λ"),
                                          "> 1), stable (",tags$em("λ"), "= 1), or declining (",tags$em("λ"), "< 1) population. For example, if",tags$em("λ"),
@@ -466,6 +546,8 @@ ui <- fluidPage(
                                          to increase by a factor of",tags$em("R"),tags$sub("0"),".")),
                                          ) # end numbered ol
                                     ), # end B li
+                                 
+                                 tags$hr(),
                                  
                                  tags$li(tags$p(style="font-family:Avenir", tags$strong("DENSITY FEEDBACK"), tags$i(class="fas fa-exchange-alt")),
                                          tags$p(style="font-family:Avenir", "Without some sort of restriction on growth, any population with", 
@@ -498,6 +580,8 @@ ui <- fluidPage(
                                          ) # end numbered ol
                                  ), # end C li
                                  
+                                 tags$hr(),
+                                 
                                  tags$li(tags$p(style="font-family:Avenir", tags$strong("PROJECT"), tags$i(class="fas fa-chart-line")),
                                          tags$p(style="font-family:Avenir", "This is finally where you get to view some of the fruits of your parameter-setting
                                          labour. This process takes the deterministic matrix from tabs A—B, and projects an initial population forward either taking
@@ -517,6 +601,8 @@ ui <- fluidPage(
                                          reclick the 'project deterministic population' button to update the", tags$em("r"), "at",tags$em("K"), "value, even if the graph
                                          updates automatically).")
                                  ), # end D li
+                                 
+                                 tags$hr(),
                                  
                                  tags$li(tags$p(style="font-family:Avenir", tags$strong("STOCHASTIC"), tags$i(class="fas fa-bolt")),
                                          tags$p(style="font-family:Avenir", "Up to here the neat, deterministic projection of your population belies the uncertainty
@@ -564,6 +650,8 @@ ui <- fluidPage(
                                          
                                  ), # end E li
                                  
+                                 tags$hr(),
+                                 
                                  tags$li(tags$p(style="font-family:Avenir", tags$strong("SINGLE PULSE"), tags$i(class="fas fa-level-down-alt")),
                                          tags$p(style="font-family:Avenir", "A 'pulse' disturbance is an acute perturbation that happens abruptly. I implemented this
                                          function to test the effect of one-off disturbance events like a harvest or known catastrophe (in addition or independent of the 
@@ -593,6 +681,8 @@ ui <- fluidPage(
                                          ), # end numbered ol
                                  ), # end F li
                                  
+                                 tags$hr(),
+                                 
                                  tags$li(tags$p(style="font-family:Avenir", tags$strong("PRESS"), tags$i(class="fas fa-compress-arrows-alt")),
                                          tags$p(style="font-family:Avenir", "A 'press' disturbance is a perturbation that happens over a longer time frame
                                          than a pulse disturbance. I implemented this function to test the effect of a sustained disturbance event like an annual
@@ -607,8 +697,6 @@ ui <- fluidPage(
                                          or only during a set interval (percentage) of the projection window.")),
                                          tags$li(tags$p(style="font-family:Avenir","If you set the interval, between what percentages of the window should the press
                                          disturbance occur?")),
-                                         
-                                         tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
                                          
                                          ), # end numbered ol
                                          tags$p(style="font-family:Avenir","Next, click the 'project/update' button to view the graph projecting population size",
@@ -625,10 +713,54 @@ ui <- fluidPage(
                                          ), # end numbered ol
                                  ), # end G li
                                  
+                                 tags$hr(),
+                                 
+                                 tags$li(tags$p(style="font-family:Avenir", tags$strong("MVP"), tags$i(class="fas fa-search-minus")),
+                                         tags$p(style="font-family:Avenir", "A minimum viable population (MVP) is a population of size", tags$em("N"),
+                                         "at time 0 that has a specified probabiliy of persisting time",tags$em("t"),"into the future. Clearly, the value of",
+                                         tags$em("N"),tags$sub("MVP"),"therefore depends not only on the demographic parameters of the population in question,
+                                         it also depends on the choice of",tags$em("persistence probability"),"as well as the time to project the population
+                                         into the future. These latter parameters can be somewhat arbitrary choices, but convention generally defaults to a 99%
+                                         probability of persisting",tags$a(href="https://onlinelibrary.wiley.com/doi/full/10.1111/j.1461-0248.2006.00883.x", "40 generations"),
+                                         "40 generations (preferred) or 100 years",tags$a(href="https://portals.iucn.org/library/node/10315","(IUCN Red List definition)"),
+                                         ". Any compensatory feedback imposed on the projections also complicates the issue insofar as the user assumes a constant,
+                                         long-term carrying capacity to which the population generally returns after a perturbation. Nonetheless, it is a useful concept
+                                         fully stochastic demographic projections of populations demonstrate generally that estimates of", tags$em("N"),tags$sub("MVP"),"tend
+                                         to align with the",tags$a(href="http://dx.doi.org/10.1016/j.biocon.2013.12.036", "'100/1000 rule'"),"(formerly known as the '50/500' rule) derived from genetic and evolutionary 
+                                         considerations. For the calculation of MVP, the process invokes the characteristics defined in earlier tabs; however, the user can set
+                                         the following parameters in addition:"),
+                                         tags$ol(tags$li(tags$p(style="font-family:Avenir","Set whether to project for number of generations or years.")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Depending on the previous choice, set number of generations (default = 40) or
+                                                                number of years (default = 100).")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Select the persistence probability (default = 0.99)")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Set the number of iterations for each initial population-size
+                                                                run. Note that large values will slow down the calculation considerably, so I recommend
+                                                                starting with low values first before settling on the desired parameters.")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Set the largest initial population size from which progressively
+                                                                smaller values will be assessed.")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Set the minimum initial population size to test.")),
+                                                 tags$li(tags$p(style="font-family:Avenir","Set the population step size that will be used to define the intervals
+                                                                tested between the maximum and minimum inital population sizes set above. Note that a higher number
+                                                                of intervals will slow down the calculation.")),
+                                                 tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
+                                                 
+                                         ), # end numbered ol
+                                         tags$p(style="font-family:Avenir","Next, click the ' calculate", tags$em("N"),tags$sub("MVP"),"' button to begin the
+                                                calculation. Once complete, a graph will appear showing the relationship between initial population size
+                                                and persistence probability over the projection window set above. Below the graph, two values will appear:"),
+                                         tags$ol(type="i",tags$li(tags$p(style="font-family:Avenir","Provided the simulations had at least one initial population
+                                         size that resulted in the persistence probability being achieved or exceeded, the minimum viable population size (number
+                                         of female individuals) will be displayed here.")),
+                                                 tags$li(tags$p(style="font-family:Avenir","A 'breakpoint' is displayed showing the first precipitous reduction in
+                                                                persistence probability as initial population size declines."))
+                                                 
+                                         ), # end numbered ol
+                                 ), # end H li
+                                 
                                  ), # end upper-case letters ol
                                  
                        ) # end wellPanel
-              ) # end tab8
+              ) # end tab9
               
   ) # end tabset
   
@@ -675,10 +807,11 @@ server <- function(input, output, session) {
     
   })
   
-  observeEvent(input$makeMatrix, {
     
-    if(input$tabs == "tab2"){
-      
+      observeEvent(input$makeMatrix, {
+        
+        if(input$tabs == "tab2"){
+          
       inputsRctv <- reactiveValues()
       observe({
         inputsRctv$am <- as.numeric(input$agemax)
@@ -709,6 +842,55 @@ server <- function(input, output, session) {
                                  finalStage=as.character(input$longevAbr)) # deterministic matrix
         })
       }) # end observe
+      
+      output$downloadMat <- downloadHandler(
+        filename = function() {
+          paste("matrixOut", "csv", sep = ".")
+        },
+        
+        content = function(file) {
+          sep <- ","
+          
+          write.table(Dmat, file, sep=sep, row.names = F, col.names = F)
+        }
+      )
+      
+      S_SDrctv <- reactive({
+        ageclasses <- as.integer(input$agemax) + 1
+        S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
+          input[[paste0("SSD", (i-1))]]
+        })))
+      }) # end Srctv
+      
+      F_SDrctv <- reactive({
+        ageclasses <- as.integer(input$agemax) + 1
+        F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
+          input[[paste0("FSD", (i-1))]]
+        })))
+      }) # end Frctv
+      
+      DemRSDdat <<- isolate({
+        SDdat <- data.frame(S_SDrctv(), F_SDrctv())
+      })
+      
+      observe({
+        output$SFSDs <- renderTable(bordered=T,rownames=F,colnames=F,striped=T, {
+          SDdat
+        })
+      })
+      
+      output$downloadSDs <- downloadHandler(
+        filename = function() {
+          paste("SFsd", "csv", sep = ".")
+        },
+        
+        content = function(file2) {
+          sep <- ","
+          
+          write.table(DemRSDdat, file2, sep=sep, row.names = F, col.names = F)
+        }
+      )
+      
       observe({
         output$maxlambda <- renderText( {
           maxl <<- maxLambda(Dmat)
@@ -754,15 +936,99 @@ server <- function(input, output, session) {
         })
       }) # end observe
       
-    } # end tab 2 if
+      } # end tab 2 if
+      
+    }) # end Events
   
-  }) # end tab Events
-  
+      
+      observeEvent(input$uploadMatrix, {
+        
+        if(input$tabs == "tab2"){
+          
+        observe({
+          output$matrix <- renderTable(bordered=T,rownames=F,colnames=F,striped=T, {
+            file_to_read = input$uploadMatrix
+            if(is.null(file_to_read)){
+              return()
+            }
+            read.table(file_to_read$datapath, sep=",", header=F)
+          }) # end output table1
+      
+          Dmat2 <<- eventReactive(input$uploadMatrix, {
+              as.matrix(read.table(input$uploadMatrix$datapath, sep=",", header = F))
+            })
+        })
+        
+          observe({
+            output$SFSDs <- renderTable(bordered=T,rownames=F,colnames=F,striped=T, {
+              file_to_read = input$uploadSDs
+              if(is.null(file_to_read)){
+                return()
+              }
+              read.table(file_to_read$datapath, sep=",", header=F)
+            }) # end output table2
+            
+            SFSD <<- eventReactive(input$uploadSDs, {
+              (read.table(input$uploadSDs$datapath, sep=",", header = F))
+            })
+          })
+          
+        observe({
+          output$maxlambda <- renderText( {
+            maxl <<- maxLambda(Dmat2())
+            paste("i. max λ = ", round(maxl, 4), "(λ < 1 → N↓; λ > 1 → N↑)")
+          })
+        }) # end observe
+        observe({
+          output$Rmax <- renderText( {
+            maxr <<- maxR(Dmat2())
+            paste("ii. max r = ", round(maxr, 4), "(r < 0 → N↓; r > 0 → N↑)")
+          })
+        }) # end observe
+        observe({
+          output$gen <- renderText( {
+            G <<- Gval(Dmat2(), dim(Dmat2())[1])
+            paste("iii. G = ", round(G, 4), "years")
+          })
+        }) # end observe
+        observe({
+          output$RV <- renderText( {
+            R <<- Rval(Dmat2(), dim(Dmat2())[1])
+            paste("iv. R0 = ", round(R, 4), "(lifetime ♀ offspring/♀)")
+          })
+        }) # end observe
+        
+        observe({
+          output$SSDplot <- renderPlot( {
+            ssdDat <<- data.frame(0:(dim(Dmat2())[1]-1), round(StableStageDist(Dmat2()), 3))
+            colnames(ssdDat) <- c("age","relProp")
+            
+            Ctheme = theme(
+              axis.title.x = element_text(size = 16),
+              axis.text.x = element_text(size = 14),
+              axis.title.y = element_text(size = 16),
+              axis.text.y = element_text(size = 14))
+            
+            ggplot(ssdDat, aes(x=age, y=relProp)) +
+              geom_point() +
+              geom_path() +
+              labs(x="age (years)", y="relative proportion in population") +
+              Ctheme
+            
+          })
+        }) # end observe
+
+      } # end tab 2 if
+        
+      }) # end Event
+
+        
   observeEvent(input$DFcalc, {
     
     if(input$tabs == "tab3"){
       
       observe({
+        
         output$DDrelPlot <- renderPlot({
           
           NKvec <- seq((input$N1/2), (input$carCap/2), 1)
@@ -782,25 +1048,45 @@ server <- function(input, output, session) {
           
         })
       }) # end observe
-      
+
+      DM2 <- reactive({
+        if (exists("Dmat2")) {
+          DM <<- Dmat2()
+        }
+      })
+
+      Dmat <<- isolate({
+        if(exists("Dmat2")) {
+          datmat <- as.matrix(DM2())
+        } else {
+          datmat <- Dmat
+        }
+      })
+  
       inputsRctv <- reactiveValues()
       observe({
-        inputsRctv$am <- as.numeric(input$agemax)
+        inputsRctv$am <- ifelse(exists("Dmat2")==T, dim(Dmat)[1] - 1, as.numeric(input$agemax))
         inputsRctv$sr <- as.numeric(input$sexratio)
       })
       
       Srctv <- reactive({
-        ageclasses <- as.integer(input$agemax) + 1
+        ageclasses <- ifelse(exists("Dmat2")==T, dim(Dmat)[1], as.integer(input$agemax) + 1)
+        if (exists("Dmat2")==T) {
+          Svec <<- c(as.numeric(diag(Dmat[2:dim(Dmat)[1], ])), as.numeric(Dmat[dim(Dmat)[1],dim(Dmat)[1]]))
+        } else {
         Svec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
           input[[paste0("S", (i-1))]]
-        })))
+        })))}
       }) # end Srctv
       
       Frctv <- reactive({
-        ageclasses <- as.integer(input$agemax) + 1
-        Fvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
+        ageclasses <- ifelse(exists("Dmat2")==T, dim(Dmat)[1], as.integer(input$agemax) + 1)
+        if (exists("Dmat2")==T) {
+          Fvec <<- as.numeric(Dmat[1,])
+        } else {
+          Fvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
           input[[paste0("F", (i-1))]]
-        })))
+        })))}
       }) # end Frctv
       
       DemRdat <<- isolate({
@@ -810,8 +1096,21 @@ server <- function(input, output, session) {
       observe({
         SmodK <- as.numeric(input$DFa)/(1+(as.numeric(input$carCap/2)/as.numeric(input$DFb))^as.numeric(input$DFc))
         SvecUpdate <<- SmodK * DemRdat[,1]
-        DmatUpdate <<- createLmatrix(age.max=inputsRctv$am, Svec=SvecUpdate, Fvec=(inputsRctv$sr/100) * DemRdat[,2],
-                               finalStage=as.character(input$longevAbr))
+        
+        if (exists("Dmat2")==T) {
+          if (Dmat[dim(Dmat)[1],dim(Dmat)[1]] == 0) {
+            finalStageChar <<- "abrupt"  
+          }
+          if (Dmat[dim(Dmat)[1],dim(Dmat)[1]] > 0) {
+            finalStageChar <<- "no"  
+          }
+        }
+        if (exists("Dmat2")==F) {
+          finalStageChar <<- as.character(input$longevAbr)
+        }
+          
+        DmatUpdate <<- createLmatrix(age.max=(dim(Dmat)[1] - 1), Svec=SvecUpdate, Fvec=(inputsRctv$sr/100) * DemRdat[,2],
+                               finalStage=finalStageChar)
       })
       
       reactiveVal({
@@ -914,29 +1213,43 @@ server <- function(input, output, session) {
     
     if(input$tabs == "tab5"){
       
+      if (exists("SFSD")==T) {
+        
+        SD2 <- reactive({
+            SD <<- SFSD()
+        })
+        
+        DemRSDdat <<- isolate({
+            SDdat <- SD2()
+        })
+        
+      } else {
+      
+        S_SDrctv <- reactive({
+          ageclasses <- as.integer(input$agemax) + 1
+          S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
+            input[[paste0("SSD", (i-1))]]
+          })))
+        }) # end Srctv
+        
+        F_SDrctv <- reactive({
+          ageclasses <- as.integer(input$agemax) + 1
+          F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
+            input[[paste0("FSD", (i-1))]]
+          })))
+        }) # end Frctv
+        
+        DemRSDdat <<- isolate({
+            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
+        })
+      } # end else
+      
       observe({
         ###################
         ## project by years
         ###################
         if (input$CatInvoke == "no" & input$DFinvoke == "no" & input$yrsOrGen == "years") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end Srctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end Frctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
           
           output$projectStochPlot <- renderPlot({
             NprojStochNoDF <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projYrs=input$yrsFutureProj, iter=as.numeric(input$iter),
@@ -991,24 +1304,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "yes" & input$DFinvoke == "no" & input$yrsOrGen == "years") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end S_SDrctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end F_SDrctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+         
           output$projectStochPlot <- renderPlot({
             
             NprojStochCatNoDF <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projYrs=input$yrsFutureProj, iter=as.numeric(input$iter),
@@ -1063,24 +1359,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "no" & input$DFinvoke == "yes" & input$yrsOrGen == "years") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end Srctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end Frctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+
           output$projectStochPlot <- renderPlot({
             NprojStoch <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projYrs=input$yrsFutureProj, iter=as.numeric(input$iter), 
                                            S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
@@ -1135,24 +1414,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "yes" & input$DFinvoke == "yes" & input$yrsOrGen == "years") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end S_SDrctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end F_SDrctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+
           output$projectStochPlot <- renderPlot({
             
             NprojStochCat <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projYrs=input$yrsFutureProj, iter=as.numeric(input$iter),
@@ -1213,24 +1475,7 @@ server <- function(input, output, session) {
       #########################  
         if (input$CatInvoke == "no" & input$DFinvoke == "no" & input$yrsOrGen == "gens") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end Srctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end Frctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+         
           output$projectStochPlot <- renderPlot({
             NprojStochNoDF <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projGens=input$gensFutureProj, iter=as.numeric(input$iter),
                                                S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2)
@@ -1284,24 +1529,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "yes" & input$DFinvoke == "no" & input$yrsOrGen == "gens") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end S_SDrctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end F_SDrctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+
           output$projectStochPlot <- renderPlot({
             
             NprojStochCatNoDF <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projGens=input$gensFutureProj, iter=as.numeric(input$iter),
@@ -1356,24 +1584,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "no" & input$DFinvoke == "yes" & input$yrsOrGen == "gens") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end Srctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end Frctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+
           output$projectStochPlot <- renderPlot({
             NprojStoch <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projGens=input$gensFutureProj, iter=as.numeric(input$iter), 
                                            S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
@@ -1428,24 +1639,7 @@ server <- function(input, output, session) {
         
         if (input$CatInvoke == "yes" & input$DFinvoke == "yes" & input$yrsOrGen == "gens") {
           
-          S_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            S_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("SSD", (i-1))]]
-            })))
-          }) # end S_SDrctv
-          
-          F_SDrctv <- reactive({
-            ageclasses <- as.integer(input$agemax) + 1
-            F_SDvec <<- as.numeric(unlist(lapply(1:ageclasses, function(i) {
-              input[[paste0("FSD", (i-1))]]
-            })))
-          }) # end F_SDrctv
-          
-          DemRSDdat <<- isolate({
-            SDdat <- data.frame(S_SDrctv(), F_SDrctv())
-          })
-          
+
           output$projectStochPlot <- renderPlot({
             
             NprojStochCat <<- projStochMatrix(x=Dmat, initN=input$Nstart/2, projGens=input$gensFutureProj, iter=as.numeric(input$iter),
@@ -2244,6 +2438,123 @@ server <- function(input, output, session) {
       }) # end observe
       
     } # end tab 7 if
+    
+  }) # end tab Events
+  
+  observeEvent(input$calcMVP, {
+    
+    if(input$tabs == "tab8"){
+      
+      observe({
+        ############################
+        ## project by generations ##
+        ############################
+        if (input$genOrYrs == "gen") {
+          
+            output$MVPPlot <- renderPlot({
+              
+              withProgress(message = "MVP calculation in progress",
+                           detail = "(this can take a while ...)",
+                           value = 0, {
+                           MVPStochGen <<- StochMVP(x=Dmat, initN=input$Nhigh/2, projGens=input$genProj, maxPrQe=(1-input$persistPr), Nint=input$Nstep, Nmin=input$Nlo,
+                                       iter=as.numeric(input$iterMVP),S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
+                                                         DFparams = c(input$DFa, input$DFb, input$DFc), 
+                                                         CatParams = c(as.numeric(input$catMag), as.numeric(input$catMagSD)))
+                           incProgress(1/as.numeric(input$iterMVP))
+                           }) # end Progress
+              
+              Ctheme = theme(
+                axis.title.x = element_text(size = 16),
+                axis.text.x = element_text(size = 14),
+                axis.title.y = element_text(size = 16),
+                axis.text.y = element_text(size = 14))
+              
+              ggplot(MVPStochGen$MVPout, aes(x=Ninit.vec, y=1-Qext)) +
+                geom_path() +
+                geom_vline(xintercept=MVPStochGen$MVP, linetype=2, color="red", size=0.5) +
+                geom_vline(xintercept=MVPStochGen$MVPst, linetype=2, color="red", size=0.5) +
+                geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+                labs(x="N initial (♀ only)", y="Pr(persistence)") +
+                Ctheme
+            })
+          
+          reactiveVal({
+            output$MVPest <- renderText({
+              if (is.na(MVPStochGen$MVP) == T | MVPStochGen$MVP == input$Nhigh/2) {
+                "i. persistence probability not achieved within specified parameter range; lower persistence probability or increase upper initial N"
+              } else {
+                paste("i. MVP = ", round(MVPStochGen$MVP, 0), "total ♀")
+              } # end if/else
+            })
+          }) # end observe
+          
+          reactiveVal({
+            output$MVPstepChange <- renderText({
+              if (is.na(MVPStochGen$MVPst) == F) {
+                paste("ii. MVP breakpoint = ", round(MVPStochGen$MVPst, 0), " total ♀")
+              } # end if
+            })
+          }) # end observe
+          
+        } # end if
+        
+        ######################
+        ## project by years ##
+        ######################
+        
+        if (input$genOrYrs == "yr") {
+          
+          output$MVPPlot <- renderPlot({
+            withProgress(message = "MVP calculation in progress",
+                         detail = "(this can take a while ...)",
+                         value = 0, {
+                           
+                         MVPStochYr <<- StochMVP(x=Dmat, initN=input$Nhigh/2, projYrs=input$yrProj, maxPrQe=(1-input$persistPr), Nint=input$Nstep, Nmin=input$Nlo,
+                                     iter=as.numeric(input$iterMVP),S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
+                                     DFparams = c(input$DFa, input$DFb, input$DFc), 
+                                     CatParams = c(as.numeric(input$catMag), as.numeric(input$catMagSD)))
+                         incProgress(1/as.numeric(input$iterMVP))
+                         }) # end Progress
+            
+            Ctheme = theme(
+              axis.title.x = element_text(size = 16),
+              axis.text.x = element_text(size = 14),
+              axis.title.y = element_text(size = 16),
+              axis.text.y = element_text(size = 14))
+            
+            ggplot(MVPStochYr$MVPout, aes(x=Ninit.vec, y=1-Qext)) +
+              geom_path() +
+              geom_vline(xintercept=MVPStochYr$MVP, linetype=2, color="red", size=0.5) +
+              geom_vline(xintercept=MVPStochYr$MVPst, linetype=2, color="red", size=0.5) +
+              geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+              labs(x="N initial (♀ only)", y="Pr(persistence)") +
+              Ctheme
+          })
+          
+          reactiveVal({
+            output$MVPest <- renderText({
+              if (is.na(MVPStochYr$MVP) == T | MVPStochYr$MVP == input$Nhigh/2) {
+                "i. persistence probability not achieved within specified parameter range; lower persistence probability or increase upper initial N"
+              } else {
+                 paste("i. MVP = ", round(MVPStochYr$MVP, 0), "total ♀")
+              } # end if/else
+            })
+          }) # end observe
+          
+          reactiveVal({
+            output$MVPstepChange <- renderText({
+              if (is.na(MVPStochYr$MVPst) == F) {
+                paste("ii. MVP breakpoint = ", round(MVPStochYr$MVPst, 0), " total ♀")
+              } # end if
+            })
+          }) # end observe
+          
+        } # end if
+        
+        
+      }) # end observe
+      
+    } # end tab 8 if
     
   }) # end tab Events
   
