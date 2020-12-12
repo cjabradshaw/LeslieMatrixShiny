@@ -13,7 +13,7 @@ A detailed instructions tab (tab H) is included for guidance, but a brief sequen
 <ol type="A">
   <li><strong>SET-UP</strong>: set matrix dimensions (longevity), age <em>x</em>-specific survival (<em>s</em><sub>x</sub>) and fertility (<em>f</em><sub>x</sub>) probabilities, offspring sex ratio, % variance around survival/fertility probabilties, and whether lifespan is abrupt or diffuse.</li>
 
-<li><strong>MATRIX PROPERTIES</strong>: shows Leslie matrix according to settings in tab A, as well as the dominant eigen value <em>λ</em> instaneous rate of population change <em>r</em> generation length <em>G</em>, and reproduction number <em>R</em><sub>0</sub> (number of ♀ offspring/adult ♀).</li>
+<li><strong>MATRIX PROPERTIES</strong>: shows Leslie matrix according to settings in tab A, as well as the dominant eigen value <em>λ</em> instaneous rate of population change <em>r</em> generation length <em>G</em>, and reproduction number <em>R</em><sub>0</sub> (number of female offspring/adult female).</li>
 
 <li><strong>DENSITY FEEDBACK</strong>: set initial population size and carrying capacity <em>K</em>, as well as the three coefficients (<em>a</em>, <em>b</em>, <em>c</em>) from a logistic power function to define the relationship between a survival modifier <em>S</em><sub>mod</sub> and population size.</li>
 
