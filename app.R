@@ -2482,7 +2482,7 @@ server <- function(input, output, session) {
           
           reactiveVal({
             output$MVPest <- renderText({
-              if (is.na(MVPStochGen$MVP) == T | MVPStochGen$MVP == input$Nhigh/2) {
+              if (is.na(MVPStochGen$MVP) == T || MVPStochGen$MVP == input$Nhigh/2 || length(MVPStochGen$MVP) == 0) {
                 "i. persistence probability not achieved within specified parameter range; lower persistence probability or increase upper initial N"
               } else {
                 paste("i. MVP = ", round(MVPStochGen$MVP, 0), " ♀")
@@ -2535,7 +2535,7 @@ server <- function(input, output, session) {
           
           reactiveVal({
             output$MVPest <- renderText({
-              if (is.na(MVPStochYr$MVP) == T | MVPStochYr$MVP == input$Nhigh/2) {
+              if (is.na(MVPStochYr$MVP) == T || MVPStochYr$MVP == input$Nhigh/2 || length(MVPStochYr$MVP)==0) {
                 "i. persistence probability not achieved within specified parameter range; lower persistence probability or increase upper initial N"
               } else {
                  paste("i. MVP = ", round(MVPStochYr$MVP, 0), "total ♀")
