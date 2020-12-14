@@ -272,7 +272,8 @@ StochMVP <- function (x, initN, projYrs, projGens, maxPrQe, Nint, Nmin, iter, S_
 
       } # end n loop
       
-      MVPn <- Ninit.vec[which(Qext <= maxPrQe)[1]]
+      MVPQwhich <- which(Qext <= maxPrQe)
+      MVPn <- Ninit.vec[MVPQwhich[length(MVPQwhich)]]
       MVPdat <- data.frame(Ninit.vec,Qext)
       MVPoutl.dat <- tso(ts(Qext,frequency=1), maxit.iloop = 100000)
       MVPstep <- Ninit.vec[max(MVPoutl.dat$outliers$time) - 2]
