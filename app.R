@@ -1094,22 +1094,24 @@ server <- function(input, output, session) {
       })
       
       observe({
-        SmodK <- as.numeric(input$DFa)/(1+(as.numeric(input$carCap/2)/as.numeric(input$DFb))^as.numeric(input$DFc))
+        SmodK <<- as.numeric(input$DFa)/(1+(as.numeric(input$carCap/2)/as.numeric(input$DFb))^as.numeric(input$DFc))
         SvecUpdate <<- SmodK * DemRdat[,1]
         
         if (exists("Dmat2")==T) {
-          if (Dmat[dim(Dmat)[1],dim(Dmat)[1]] == 0) {
-            finalStageChar <<- "abrupt"  
+          SR <<- 1
+          
+          if (as.numeric(Dmat[dim(Dmat)[1],dim(Dmat)[1]]) == 0) {
+            finalStageChar <<- "abrupt"
           }
-          if (Dmat[dim(Dmat)[1],dim(Dmat)[1]] > 0) {
+          if (as.numeric(Dmat[dim(Dmat)[1],dim(Dmat)[1]]) > 0) {
             finalStageChar <<- "no"  
           }
-        }
-        if (exists("Dmat2")==F) {
+        } else {
           finalStageChar <<- as.character(input$longevAbr)
+          SR <<- inputsRctv$sr/100
         }
           
-        DmatUpdate <<- createLmatrix(age.max=(dim(Dmat)[1] - 1), Svec=SvecUpdate, Fvec=(inputsRctv$sr/100) * DemRdat[,2],
+        DmatUpdate <<- createLmatrix(age.max=(dim(Dmat)[1] - 1), Svec=SvecUpdate, Fvec=(SR * DemRdat[,2]),
                                finalStage=finalStageChar)
       })
       
@@ -2483,7 +2485,7 @@ server <- function(input, output, session) {
               if (is.na(MVPStochGen$MVP) == T | MVPStochGen$MVP == input$Nhigh/2) {
                 "i. persistence probability not achieved within specified parameter range; lower persistence probability or increase upper initial N"
               } else {
-                paste("i. MVP = ", round(MVPStochGen$MVP, 0), "total ♀")
+                paste("i. MVP = ", round(MVPStochGen$MVP, 0), " ♀")
               } # end if/else
             })
           }) # end observe
@@ -2491,7 +2493,7 @@ server <- function(input, output, session) {
           reactiveVal({
             output$MVPstepChange <- renderText({
               if (is.na(MVPStochGen$MVPst) == F) {
-                paste("ii. MVP breakpoint = ", round(MVPStochGen$MVPst, 0), " total ♀")
+                paste("ii. MVP breakpoint = ", round(MVPStochGen$MVPst, 0), " ♀")
               } # end if
             })
           }) # end observe
