@@ -23,6 +23,8 @@ source(file.path("./functions/", "projStochMatrix.R"), local=T)
 source(file.path("./functions/", "projStochPulse.R"), local=T)
 source(file.path("./functions/", "projStochPress.R"), local=T)
 source(file.path("./functions/", "StochMVP.R"), local=T)
+source(file.path("./functions/", "LogPowFunc.R"), local=T)
+source(file.path("./functions/", "predictNLS.R"), local=T)
 source(file.path("./functions/", "estBetaParams.R"), local=T)
 source(file.path("./functions/", "setBackgroundColor.R"), local=T)
 
@@ -247,7 +249,9 @@ ui <- fluidPage(
                          mainPanel(
                            wellPanel(style = "background: #d7f9da",
                                      add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
-                                     plotOutput("detProjPlot")
+                                     plotOutput("detProjPlot"),
+                                     tags$br(),
+                                     downloadButton('downloadDetN', 'download projection',icon = shiny::icon("download"))
                            ), # end wellPanel
                          ) # close mainPanel
                        ) # end sidebar Layout
@@ -285,7 +289,9 @@ ui <- fluidPage(
                                      tags$hr(),
                                      textOutput("PrExt"),
                                      textOutput("minPop"),
-                                     textOutput("rMn")
+                                     textOutput("rMn"),
+                                     tags$br(),
+                                     downloadButton('downloadStochN', 'download projection',icon = shiny::icon("download"))
                            ), # end wellPanel
                            
                            wellPanel(style = "background: #d7f9da",
@@ -429,6 +435,7 @@ ui <- fluidPage(
                                      tags$hr(),
                                      textOutput("MVPest"),
                                      textOutput("MVPstepChange"),
+                                     textOutput("MVPasymptote")
                            ), # end wellPanel
                            
                          ) # close mainPanel
@@ -742,17 +749,28 @@ ui <- fluidPage(
                                                  tags$li(tags$p(style="font-family:Avenir","Set the population step size that will be used to define the intervals
                                                                 tested between the maximum and minimum inital population sizes set above. Note that a higher number
                                                                 of intervals will slow down the calculation.")),
-                                                 tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
                                                  
                                          ), # end numbered ol
                                          tags$p(style="font-family:Avenir","Next, click the ' calculate", tags$em("N"),tags$sub("MVP"),"' button to begin the
                                                 calculation. Once complete, a graph will appear showing the relationship between initial population size
-                                                and persistence probability over the projection window set above. Below the graph, two values will appear:"),
+                                                and persistence probability over the projection window set above. Below the graph, three outputs will appear:"),
                                          tags$ol(type="i",tags$li(tags$p(style="font-family:Avenir","Provided the simulations had at least one initial population
                                          size that resulted in the persistence probability being achieved or exceeded, the minimum viable population size (number
                                          of female individuals) will be displayed here.")),
                                                  tags$li(tags$p(style="font-family:Avenir","A 'breakpoint' is displayed showing the first precipitous reduction in
-                                                                persistence probability as initial population size declines."))
+                                                                persistence probability as initial population size declines.")),
+                                         tags$a(href="https://github.com/cjabradshaw/LeslieMatrixShiny/blob/main/LICENSE", tags$img(height = 50, src = "GNU GPL3.png", style="float:right", title="GNU General Public Licence v3.0")),
+                                                 
+                                                 tags$li(tags$p(style="font-family:Avenir","I have also included a logistic power function of the form: 
+                                                                Pr(Persistence) =", tags$em("a"), "/ (1 + (", tags$em("N"), "/", tags$em("b"),")",
+                                                                tags$sup(tags$em("c")), "), where parameters", tags$em("a, b, c"), "are constants calculated
+                                                                using a non-linear optimisation function, and", tags$em("N"), "is the number of initial adult
+                                                                females in the population.", "This logistic function (given as one of the outputs) provides
+                                                                an 'asymptotic' estimate of minimum viable population size, with a corresponding confidence
+                                                                interval derived from a multinomial resampling procedure (light red-shaded region in the
+                                                                corresponding graph). Note that if the parameters are not chosen carefully, this function
+                                                                cannot be fit and the asymptotic MVP size will not be displayed."))
+                                                 
                                                  
                                          ), # end numbered ol
                                  ), # end H li
@@ -1205,6 +1223,20 @@ server <- function(input, output, session) {
           
         } # end if
         
+        output$downloadDetN <- downloadHandler(
+          filename = function() {
+            paste("deterministicNproj", "csv", sep = ".")
+          },
+          
+          content = function(file) {
+            sep <- ","
+            NprojDL <<- NprojOut
+            NprojDL[,2] <- round(NprojOut[,2], 0)
+            write.table(NprojDL, file, sep=sep, row.names = F, col.names = T)
+          }
+        )
+        
+        
       }) # end observe
 
     } # end tab 4 if
@@ -1270,6 +1302,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochNoDF$Nrange
+              stochNprojDL[,2] <- round(NprojStochNoDF$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochNoDF$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochNoDF$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExt <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochNoDF$PrQext, 4))
@@ -1325,6 +1372,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochCatNoDF$Nrange
+              stochNprojDL[,2] <- round(NprojStochCatNoDF$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochCatNoDF$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochCatNoDF$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExt <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochCatNoDF$PrQext, 4))
@@ -1379,6 +1441,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStoch$Nrange
+              stochNprojDL[,2] <- round(NprojStoch$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStoch$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStoch$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExt <- renderText({
@@ -1436,6 +1513,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochCat$Nrange
+              stochNprojDL[,2] <- round(NprojStochCat$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochCat$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochCat$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExt <- renderText({
@@ -1495,6 +1587,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochNoDF$Nrange
+              stochNprojDL[,2] <- round(NprojStochNoDF$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochNoDF$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochNoDF$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExt <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochNoDF$PrQext, 4))
@@ -1550,6 +1657,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochCatNoDF$Nrange
+              stochNprojDL[,2] <- round(NprojStochCatNoDF$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochCatNoDF$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochCatNoDF$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExt <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochCatNoDF$PrQext, 4))
@@ -1604,6 +1726,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStoch$Nrange
+              stochNprojDL[,2] <- round(NprojStoch$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStoch$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStoch$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExt <- renderText({
@@ -1661,6 +1798,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadStochN <- downloadHandler(
+            filename = function() {
+              paste("stochasticNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              stochNprojDL <<- NprojStochCat$Nrange
+              stochNprojDL[,2] <- round(NprojStochCat$Nrange[,2], 0)
+              stochNprojDL[,3] <- round(NprojStochCat$Nrange[,3], 0)
+              stochNprojDL[,4] <- round(NprojStochCat$Nrange[,4], 0)
+              write.table(stochNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExt <- renderText({
@@ -2462,24 +2614,44 @@ server <- function(input, output, session) {
                                        iter=as.numeric(input$iterMVP),S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
                                                          DFparams = c(input$DFa, input$DFb, input$DFc), 
                                                          CatParams = c(as.numeric(input$catMag), as.numeric(input$catMagSD)))
+                           
+                           MVPseries <<- MVPStochGen$MVPout[order(MVPStochGen$MVPout$Ninit.vec),]
+                           MVPasympOut <<- LogPowFunc(PrPersist=(1-MVPseries[,2]), N=MVPseries[,1], a=0.95, b=MVPStochGen$MVPst,
+                                                      c=-17, alpha=0.05, sim=10000)
                            incProgress(1/as.numeric(input$iterMVP))
+                           
                            }) # end Progress
-              
+
               Ctheme = theme(
                 axis.title.x = element_text(size = 16),
                 axis.text.x = element_text(size = 14),
                 axis.title.y = element_text(size = 16),
                 axis.text.y = element_text(size = 14))
               
-              ggplot(MVPStochGen$MVPout, aes(x=Ninit.vec, y=1-Qext)) +
-                geom_path() +
-                geom_vline(xintercept=MVPStochGen$MVP, linetype=2, color="red", size=0.5) +
-                geom_vline(xintercept=MVPStochGen$MVPst, linetype=2, color="red", size=0.5) +
-                geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
-                labs(x="N initial (♀ only)", y="Pr(persistence)") +
-                Ctheme
-            })
-          
+              if(is.na(MVPasympOut$PerPredDat$Nvec[1])==T) {
+                ggplot() +
+                  geom_path(data=MVPseries, aes(x=Ninit.vec, y=1-Qext)) +
+                  geom_vline(xintercept=MVPStochGen$MVP, linetype=2, color="red", size=0.5) +
+                  geom_vline(xintercept=MVPStochGen$MVPst, linetype=2, color="red", size=0.5) +
+                  geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+                  labs(x="N initial (♀ only)", y="Pr(persistence)") +
+                  Ctheme
+                
+              } else {
+                ggplot() +
+                  geom_path(data=MVPseries, aes(x=Ninit.vec, y=1-Qext)) +
+                  geom_line(data=MVPasympOut$PerPredDat, aes(x=Nvec, y=PerPredMed), col="blue", linetype=2) +
+                  geom_ribbon(data=MVPasympOut$PerPredDat, aes(x=Nvec, ymin=PerPredLo, ymax=PerPredUp), alpha=0.1) +
+                  annotate("rect", xmin=MVPasympOut$MPVasLo, xmax=MVPasympOut$MVPasUp, ymin=0, ymax=1, fill="red", alpha=0.05) +
+                  geom_vline(xintercept=MVPStochGen$MVP, linetype=2, color="red", size=0.5) +
+                  geom_vline(xintercept=MVPStochGen$MVPst, linetype=2, color="red", size=0.5) +
+                  geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+                  labs(x="N initial (♀ only)", y="Pr(persistence)") +
+                  Ctheme
+              }
+            
+              })
+       
           reactiveVal({
             output$MVPest <- renderText({
               if (is.na(MVPStochGen$MVP) == T || MVPStochGen$MVP == input$Nhigh/2 || length(MVPStochGen$MVP) == 0) {
@@ -2498,6 +2670,19 @@ server <- function(input, output, session) {
             })
           }) # end observe
           
+          reactiveVal({
+            output$MVPasymptote <- renderText({
+              if (is.na(MVPasympOut$MVPasMed) == F & is.na(MVPasympOut$PerPredDat$Nvec[1])==F) {
+                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", MVPasympOut$MPVasLo, " — ", MVPasympOut$MVPasUp,
+                      "; fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
+                      round(MVPasympOut$cLP, 1), ")", sep="")
+              } else {
+                "iii. Cannot estimate aymptotic MVP function with set parameters"
+                } # end if/else
+            })
+          }) # end observe
+          
+          
         } # end if
         
         ######################
@@ -2515,6 +2700,10 @@ server <- function(input, output, session) {
                                      iter=as.numeric(input$iterMVP),S_SD=DemRSDdat[,1], F_SD=DemRSDdat[,2], Qthresh=input$Qthresh/2,
                                      DFparams = c(input$DFa, input$DFb, input$DFc), 
                                      CatParams = c(as.numeric(input$catMag), as.numeric(input$catMagSD)))
+                         
+                         MVPseries <<- MVPStochYr$MVPout[order(MVPStochYr$MVPout$Ninit.vec),]
+                         MVPasympOut <<- LogPowFunc(PrPersist=(1-MVPseries[,2]), N=MVPseries[,1], a=0.95, b=MVPStochYr$MVPst,
+                                                    c=-17, alpha=0.05, sim=10000)
                          incProgress(1/as.numeric(input$iterMVP))
                          }) # end Progress
             
@@ -2524,13 +2713,27 @@ server <- function(input, output, session) {
               axis.title.y = element_text(size = 16),
               axis.text.y = element_text(size = 14))
             
-            ggplot(MVPStochYr$MVPout, aes(x=Ninit.vec, y=1-Qext)) +
-              geom_path() +
-              geom_vline(xintercept=MVPStochYr$MVP, linetype=2, color="red", size=0.5) +
-              geom_vline(xintercept=MVPStochYr$MVPst, linetype=2, color="red", size=0.5) +
-              geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
-              labs(x="N initial (♀ only)", y="Pr(persistence)") +
-              Ctheme
+            if(is.na(MVPasympOut$PerPredDat$Nvec[1])==T) {
+              ggplot() +
+                geom_path(data=MVPseries, aes(x=Ninit.vec, y=1-Qext)) +
+                geom_vline(xintercept=MVPStochYr$MVP, linetype=2, color="red", size=0.5) +
+                geom_vline(xintercept=MVPStochYr$MVPst, linetype=2, color="red", size=0.5) +
+                geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+                labs(x="N initial (♀ only)", y="Pr(persistence)") +
+                Ctheme
+              
+            } else {
+              ggplot() +
+                geom_path(data=MVPseries, aes(x=Ninit.vec, y=1-Qext)) +
+                geom_line(data=MVPasympOut$PerPredDat, aes(x=Nvec, y=PerPredMed), col="blue", linetype=2) +
+                geom_ribbon(data=MVPasympOut$PerPredDat, aes(x=Nvec, ymin=PerPredLo, ymax=PerPredUp), alpha=0.1) +
+                annotate("rect", xmin=MVPasympOut$MPVasLo, xmax=MVPasympOut$MVPasUp, ymin=0, ymax=1, fill="red", alpha=0.05) +
+                geom_vline(xintercept=MVPStochYr$MVP, linetype=2, color="red", size=0.5) +
+                geom_vline(xintercept=MVPStochYr$MVPst, linetype=2, color="red", size=0.5) +
+                geom_hline(yintercept=(input$persistPr), linetype=2, color="red", size=0.5) +			  
+                labs(x="N initial (♀ only)", y="Pr(persistence)") +
+                Ctheme
+            }
           })
           
           reactiveVal({
@@ -2548,6 +2751,18 @@ server <- function(input, output, session) {
               if (is.na(MVPStochYr$MVPst) == F) {
                 paste("ii. MVP breakpoint = ", round(MVPStochYr$MVPst, 0), " total ♀")
               } # end if
+            })
+          }) # end observe
+          
+          reactiveVal({
+            output$MVPasymptote <- renderText({
+              if (is.na(MVPasympOut$MVPasMed) == F & is.na(MVPasympOut$PerPredDat$Nvec[1])==F) {
+                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", MVPasympOut$MPVasLo, " — ", MVPasympOut$MVPasUp,
+                      "; fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
+                      round(MVPasympOut$cLP, 1), ")", sep="")
+              } else {
+                "iii. Cannot estimate aymptotic MVP function with set parameters"
+              } # end if/else
             })
           }) # end observe
           
