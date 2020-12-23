@@ -23,7 +23,7 @@ A detailed instructions tab (tab H) is included for guidance, but a brief sequen
 
 <li><strong>SINGLE PULSE</strong>: a single 'pulse' disturbance, where the user can set the disturbance to be either a proportion of the total population that is removed, or a fixed number of individuals removed, at the time (year) the user wishes to invoke the pulse.</li>
 
-<li><strong>PRESS</strong>: a press disturbance, where the user can set the disturbance to be either a proportion of the total population that is removed, or a fixed number of individuals removed, during the interval over which the user wishes to invoke the press.</li></ol>
+<li><strong>PRESS</strong>: a press disturbance, where the user can set the disturbance to be either a proportion of the total population that is removed, or a fixed number of individuals removed, during the interval over which the user wishes to invoke the press.</li>
 
 <li><strong>MVP</strong>: calculate the minimum viable population size according to the parameters set in previous tabs.</li></ol>
 
