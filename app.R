@@ -286,12 +286,12 @@ ui <- fluidPage(
                                      #add_busy_gif(src = "expand.gif", timeout=500, position='full-page', height = 150, width = 150), # add busy gif
                                      add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectStochPlot"),
+                                     tags$br(),
+                                     downloadButton('downloadStochN', 'download projection',icon = shiny::icon("download")),
                                      tags$hr(),
                                      textOutput("PrExt"),
                                      textOutput("minPop"),
                                      textOutput("rMn"),
-                                     tags$br(),
-                                     downloadButton('downloadStochN', 'download projection',icon = shiny::icon("download"))
                            ), # end wellPanel
                            
                            wellPanel(style = "background: #d7f9da",
@@ -340,6 +340,8 @@ ui <- fluidPage(
                                      tags$h3(tags$p(style="font-family:Avenir", "population size")),
                                      add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectPulsePlot"),
+                                     tags$br(),
+                                     downloadButton('downloadPulseN', 'download projection',icon = shiny::icon("download")),
                                      tags$hr(),
                                      textOutput("PrExtPulse"),
                                      textOutput("minPopPulse"),
@@ -389,6 +391,8 @@ ui <- fluidPage(
                                      tags$h3(tags$p(style="font-family:Avenir", "population size")),
                                      add_busy_spinner(spin="fading-circle", color="#17ca3a", timeout=500, position="bottom-right", height = 250, width = 250),
                                      plotOutput("projectPressPlot"),
+                                     tags$br(),
+                                     downloadButton('downloadPressN', 'download projection',icon = shiny::icon("download")),
                                      tags$hr(),
                                      textOutput("PrExtPress"),
                                      textOutput("minPopPress"),
@@ -1886,6 +1890,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulsePrecRand$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulsePrecRand$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulsePrecRand$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulsePrecRand$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPulse <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPulsePrecRand$PrQext, 4))
@@ -1929,6 +1948,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulsePrecSet$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulsePrecSet$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulsePrecSet$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulsePrecSet$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPulse <- renderText({
@@ -1974,6 +2008,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulseFixRand$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulseFixRand$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulseFixRand$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulseFixRand$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPulse <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPulseFixRand$PrQext, 4))
@@ -2017,6 +2066,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulseFixSet$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulseFixSet$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulseFixSet$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulseFixSet$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPulse <- renderText({
@@ -2064,6 +2128,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulsePrecRand$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulsePrecRand$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulsePrecRand$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulsePrecRand$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPulse <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPulsePrecRand$PrQext, 4))
@@ -2107,6 +2186,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulsePrecSet$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulsePrecSet$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulsePrecSet$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulsePrecSet$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPulse <- renderText({
@@ -2152,6 +2246,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulseFixRand$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulseFixRand$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulseFixRand$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulseFixRand$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPulse <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPulseFixRand$PrQext, 4))
@@ -2195,6 +2304,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPulseN <- downloadHandler(
+            filename = function() {
+              paste("pulseNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pulseNprojDL <<- NprojStochPulseFixSet$Nrange
+              pulseNprojDL[,2] <- round(NprojStochPulseFixSet$Nrange[,2], 0)
+              pulseNprojDL[,3] <- round(NprojStochPulseFixSet$Nrange[,3], 0)
+              pulseNprojDL[,4] <- round(NprojStochPulseFixSet$Nrange[,4], 0)
+              write.table(pulseNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPulse <- renderText({
@@ -2254,6 +2378,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressPrecRand$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressPrecRand$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressPrecRand$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressPrecRand$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPress <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPressPrecRand$PrQext, 4))
@@ -2299,6 +2438,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressPrecSet$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressPrecSet$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressPrecSet$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressPrecSet$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPress <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPressPrecSet$PrQext, 4))
@@ -2342,6 +2496,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressFixRand$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressFixRand$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressFixRand$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressFixRand$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPress <- renderText({
@@ -2387,6 +2556,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressFixSet$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressFixSet$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressFixSet$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressFixSet$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPress <- renderText({
@@ -2435,6 +2619,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressPrecRand$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressPrecRand$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressPrecRand$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressPrecRand$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPress <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPressPrecRand$PrQext, 4))
@@ -2480,6 +2679,21 @@ server <- function(input, output, session) {
               Ctheme
           })
           
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressPrecSet$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressPrecSet$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressPrecSet$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressPrecSet$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
+          
           reactiveVal({
             output$PrExtPress <- renderText({
               paste("i. Pr(Ext) = ", round(NprojStochPressPrecSet$PrQext, 4))
@@ -2523,6 +2737,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressFixRand$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressFixRand$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressFixRand$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressFixRand$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPress <- renderText({
@@ -2568,6 +2797,21 @@ server <- function(input, output, session) {
               labs(x="years into future", y="N (♀ only)") +
               Ctheme
           })
+          
+          output$downloadPressN <- downloadHandler(
+            filename = function() {
+              paste("pressNproj", "csv", sep = ".")
+            },
+            
+            content = function(file) {
+              sep <- ","
+              pressNprojDL <<- NprojStochPressFixSet$Nrange
+              pressNprojDL[,2] <- round(NprojStochPressFixSet$Nrange[,2], 0)
+              pressNprojDL[,3] <- round(NprojStochPressFixSet$Nrange[,3], 0)
+              pressNprojDL[,4] <- round(NprojStochPressFixSet$Nrange[,4], 0)
+              write.table(pressNprojDL, file, sep=sep, row.names = F, col.names = T)
+            }
+          )
           
           reactiveVal({
             output$PrExtPress <- renderText({
@@ -2673,9 +2917,10 @@ server <- function(input, output, session) {
           reactiveVal({
             output$MVPasymptote <- renderText({
               if (is.na(MVPasympOut$MVPasMed) == F & is.na(MVPasympOut$PerPredDat$Nvec[1])==F) {
-                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", MVPasympOut$MPVasLo, " — ", MVPasympOut$MVPasUp,
-                      "; fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
-                      round(MVPasympOut$cLP, 1), ")", sep="")
+                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", min(c(MVPasympOut$MPVasLo,MVPasympOut$MVPasUp)), " — ",
+                      max(c(MVPasympOut$MPVasLo,MVPasympOut$MVPasUp)),
+                      ") ➪➪ fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
+                      round(MVPasympOut$cLP, 1), sep="")
               } else {
                 "iii. Cannot estimate aymptotic MVP function with set parameters"
                 } # end if/else
@@ -2757,9 +3002,10 @@ server <- function(input, output, session) {
           reactiveVal({
             output$MVPasymptote <- renderText({
               if (is.na(MVPasympOut$MVPasMed) == F & is.na(MVPasympOut$PerPredDat$Nvec[1])==F) {
-                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", MVPasympOut$MPVasLo, " — ", MVPasympOut$MVPasUp,
-                      "; fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
-                      round(MVPasympOut$cLP, 1), ")", sep="")
+                paste("iii. MVP asymptotic = ", MVPasympOut$MVPasMed, " ♀ (CI: ", min(c(MVPasympOut$MPVasLo,MVPasympOut$MVPasUp)), " — ",
+                      max(c(MVPasympOut$MPVasLo,MVPasympOut$MVPasUp)),
+                      ") ➪➪ fit: Pr(Persist) = ", round(MVPasympOut$aLP, 3), " / (1 + (N / ", round(MVPasympOut$bLP, 0), ")^",
+                      round(MVPasympOut$cLP, 1), sep="")
               } else {
                 "iii. Cannot estimate aymptotic MVP function with set parameters"
               } # end if/else
