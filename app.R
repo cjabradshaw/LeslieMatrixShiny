@@ -1053,7 +1053,7 @@ server <- function(input, output, session) {
         
         output$DDrelPlot <- renderPlot({
           
-          NKvec <- seq((input$N1/2), (input$carCap/2), 1)
+          NKvec <- seq(round((input$N1/2),0), round((input$carCap/2),0), 1)
           CompOut <<- data.frame(NKvec, as.numeric(input$DFa)/(1+(as.numeric(NKvec)/as.numeric(input$DFb))^as.numeric(input$DFc)))
           colnames(CompOut) <- c("Kcont", "predSmod")
           
