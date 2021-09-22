@@ -1,4 +1,5 @@
 # LeslieMatrixShiny
+<img align="right" src="Amatrix.png" alt="transition matrix" width="200" style="margin-top: 20px">
 
 Prof Corey J. A. Bradshaw <br>
 <a href="http://globalecologyflinders.com" target="_blank">Global Ecology</a>, <a href="http://flinders.edu.au" target="_blank">Flinders University</a>, Adelaide, Australia <br>
