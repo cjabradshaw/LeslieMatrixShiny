@@ -1,5 +1,5 @@
 # LeslieMatrixShiny
-<img align="right" src="Amatrix.png" alt="transition matrix" width="200" style="margin-top: 20px">
+<img align="right" src="Amatrix.png" alt="transition matrix" width="300" style="margin-top: 20px">
 
 Prof Corey J. A. Bradshaw <br>
 <a href="http://globalecologyflinders.com" target="_blank">Global Ecology</a>, <a href="http://flinders.edu.au" target="_blank">Flinders University</a>, Adelaide, Australia <br>
@@ -28,4 +28,4 @@ A detailed instructions tab (tab H) is included for guidance, but a brief sequen
 
 <li><strong>MVP</strong>: calculate the minimum viable population size according to the parameters set in previous tabs.</li></ol>
 
-This  Github repository provides all the 'under-the-bonnet' R code for the app.
+This Github repository provides all the 'under-the-bonnet' R code for the app.
